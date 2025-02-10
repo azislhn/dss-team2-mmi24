@@ -1,6 +1,6 @@
-# 🎈 Blank app template
+# 🎈 DSS Framework
 
-A simple Streamlit app template for you to modify!
+SAW, WP, TOPSIS
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
 
