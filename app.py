@@ -9,13 +9,13 @@ st.set_page_config(page_title="DSS Framework", layout="centered")
 st.title("Sistem Pendukung Keputusan - SAW, WP, TOPSIS")
 
 # Sidebar Navigasi dengan Tampilan yang Ditingkatkan
-st.sidebar.markdown("## Decision Support System")
+st.sidebar.markdown("## DSS Framework")
 st.sidebar.markdown("### Menu Navigasi")
 menu = st.sidebar.radio("Pilih Halaman", ["🏠 Input Data", "📜 Riwayat Prediksi"])
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Informasi Aplikasi**")
 st.sidebar.text("Versi: 1.0")
-st.sidebar.text("Dikembangkan oleh: Tim DSS")
+st.sidebar.text("Dikembangkan oleh: Tim 2 DSS MMI24")
 
 if menu == "🏠 Input Data":
     with st.form("form_prediksi"):
