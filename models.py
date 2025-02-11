@@ -22,6 +22,7 @@ def hitung_saw(matrix, bobot, tipe_kriteria):
 def hitung_wp(matrix, bobot, tipe_kriteria):
     matrix = np.array(matrix, dtype=np.float64)
     bobot = np.array(bobot)
+    bobot = bobot / np.sum(bobot)
     
     # Normalisasi untuk benefit/cost
     for j in range(matrix.shape[1]):

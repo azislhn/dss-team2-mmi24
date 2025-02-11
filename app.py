@@ -124,10 +124,15 @@ elif menu == "📜 Riwayat Prediksi":
             for k in kriteria_tersimpan:
                 st.write(f"{k[2]} ({k[3]}) - Bobot: {k[4]}")
             
-            alternatif_tersimpan = db.ambil_alternatif(prediksi_id)
-            st.write("#### Alternatif")
-            for a in alternatif_tersimpan:
-                st.write(a[2])
+            nilai_alternatif = db.ambil_nilai_alternatif(prediksi_id)
+            if nilai_alternatif:
+                st.write("#### Nilai Alternatif")
+                st.table(nilai_alternatif)
+                
+            # alternatif_tersimpan = db.ambil_alternatif(prediksi_id)
+            # st.write("#### Alternatif")
+            # for a in alternatif_tersimpan:
+            #     st.write(a[2])
     
     if not prediksi_tersimpan:
         st.warning("Belum ada prediksi yang tersimpan.")
