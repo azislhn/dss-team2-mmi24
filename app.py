@@ -24,18 +24,13 @@ if menu == "🏠 Input Data":
     st.subheader("Masukkan Data Prediksi")
     nama_prediksi = st.text_input("Nama Prediksi", "")
     metode = st.selectbox("Pilih Metode", ["SAW", "WP", "TOPSIS"])
-    jumlah_kriteria = 1
-    jumlah_alternatif = 1
-    input_jumlah_kriteria = st.number_input("Jumlah Kriteria", min_value=1, step=1, value=3)
-    input_jumlah_alternatif = st.number_input("Jumlah Alternatif", min_value=1, step=1, value=3)
+    jumlah_kriteria = st.number_input("Jumlah Kriteria", min_value=1, step=1, value=3)
+    jumlah_alternatif = st.number_input("Jumlah Alternatif", min_value=1, step=1, value=3)
     update_button = st.button("Perbarui")
     
     if update_button:
         if not nama_prediksi.strip():
             st.error("Nama prediksi harus diisi.")
-        else:
-            jumlah_kriteria = input_jumlah_kriteria
-            jumlah_alternatif = input_jumlah_alternatif
 
     # Menggunakan Tabs untuk Input Kriteria dan Alternatif
     tab_kriteria, tab_alternatif = st.tabs(["**Kriteria**", "**Alternatif**"])
