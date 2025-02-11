@@ -118,7 +118,6 @@ elif menu == "📜 Riwayat Prediksi":
     for prediksi in prediksi_tersimpan:
         prediksi_id, nama_prediksi, metode = prediksi
         if search_query.lower() in nama_prediksi.lower():
-            st.markdown("---")
             st.write(f"### Prediksi: {nama_prediksi}")
             st.write(f"Metode: {metode}")
             
