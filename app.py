@@ -139,9 +139,11 @@ elif menu == "📜 Riwayat Prediksi":
                 
                 df_nilai = df_nilai.merge(df_alternatif, left_on="Alternatif_ID", right_on="ID", suffixes=("_nilai", "_alt"))
                 df_nilai = df_nilai.merge(df_kriteria, left_on="Kriteria_ID", right_on="ID", suffixes=("", "_krit"))
-                df_nilai = df_nilai[["Nama Alternatif", "Nama Kriteria", "Nilai"]]
                 
-                st.table(df_nilai)
+                df_pivot = df_nilai.pivot(index="Nama Alternatif", columns="Nama Kriteria", values="Nilai")
+                df_pivot = df_pivot.reset_index()
+                
+                st.table(df_pivot)
     
     if not prediksi_tersimpan:
         st.warning("Belum ada prediksi yang tersimpan.")
