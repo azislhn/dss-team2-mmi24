@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 from db_sql import Database
 from models import hitung_saw, hitung_wp, hitung_topsis
 
@@ -129,9 +130,18 @@ elif menu == "📜 Riwayat Prediksi":
                 st.write(f"{k[2]} ({k[3]}) - Bobot: {k[4]}")
             
             nilai_alternatif = db.ambil_nilai_alternatif(prediksi_id)
-            if nilai_alternatif:
+            
+            if nilai_alternatif and kriteria_tersimpan:
                 st.write("#### Riwayat Data Input")
-                st.table(nilai_alternatif)
+                df_nilai = pd.DataFrame(nilai_alternatif, columns=["ID", "Alternatif_ID", "Kriteria_ID", "Nilai"])
+                df_alternatif = pd.DataFrame(db.ambil_alternatif(prediksi_id), columns=["ID", "Prediksi_ID", "Nama Alternatif"])
+                df_kriteria = pd.DataFrame(kriteria_tersimpan, columns=["ID", "Prediksi_ID", "Nama Kriteria", "Tipe", "Bobot"])
+                
+                df_nilai = df_nilai.merge(df_alternatif, left_on="Alternatif_ID", right_on="ID", suffixes=("_nilai", "_alt"))
+                df_nilai = df_nilai.merge(df_kriteria, left_on="Kriteria_ID", right_on="ID", suffixes=("", "_krit"))
+                df_nilai = df_nilai[["Nama Alternatif", "Nama Kriteria", "Nilai"]]
+                
+                st.table(df_nilai)
     
     if not prediksi_tersimpan:
         st.warning("Belum ada prediksi yang tersimpan.")
