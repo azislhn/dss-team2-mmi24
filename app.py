@@ -44,7 +44,10 @@ if menu == "🏠 Input Data":
                 with col1:
                     tipe = st.radio(f"Tipe {i+1}", ["benefit", "cost"], key=f"tipe_{i}")
                 with col2:
-                    bobot = st.number_input(f"Bobot {i+1}", 0.0, 1.0, step=0.05, key=f"bobot_{i}")
+                    if metode == "WP":
+                        bobot = st.number_input(f"Bobot {i+1}", 0.0, 100.0, step=1.0, key=f"bobot_{i}")
+                    else:
+                        bobot = st.number_input(f"Bobot {i+1}", 0.0, 1.0, step=0.05, key=f"bobot_{i}")
                 kriteria_data.append([nama, tipe, bobot])
                 st.markdown("---")
 
@@ -59,7 +62,7 @@ if menu == "🏠 Input Data":
                 matrix_data.append(nilai)
                 st.markdown("---")
 
-        submit = st.form_submit_button("Simpan & Hitung Prediksi")
+        submit = st.form_submit_button(f"Simpan & Hitung dengan {metode}")
 
     if submit:
         if (not nama_prediksi or not metode or
