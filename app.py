@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-from database import Database
+from db_sql import Database
 from models import hitung_saw, hitung_wp, hitung_topsis
 
 db = Database()
@@ -44,7 +44,7 @@ if menu == "🏠 Input Data":
                 with col1:
                     tipe = st.radio(f"Tipe {i+1}", ["benefit", "cost"], key=f"tipe_{i}")
                 with col2:
-                    bobot = st.number_input(f"Bobot {i+1}", 0.0, 1.0, step=0.1, key=f"bobot_{i}")
+                    bobot = st.number_input(f"Bobot {i+1}", 0.0, 1.0, step=0.05, key=f"bobot_{i}")
                 kriteria_data.append([nama, tipe, bobot])
                 st.markdown("---")
 
@@ -91,12 +91,35 @@ if menu == "🏠 Input Data":
             for alt, skor in hasil_sorted:
                 db.simpan_hasil(prediksi_id, alt, skor)
 
+# elif menu == "📜 Riwayat Prediksi":
+#     st.subheader("Riwayat Prediksi")
+#     if db.is_connected():
+#         prediksi_tersimpan = db.db.collection("prediksi").stream()
+#         for doc in prediksi_tersimpan:
+#             st.write(f"### Prediksi: {doc.to_dict()['nama_prediksi']}")
+#             st.write(f"Metode: {doc.to_dict()['metode']}")
+#     else:
+#         st.warning("Tidak terhubung ke database.")
+    
 elif menu == "📜 Riwayat Prediksi":
     st.subheader("Riwayat Prediksi")
-    if db.is_connected():
-        prediksi_tersimpan = db.db.collection("prediksi").stream()
-        for doc in prediksi_tersimpan:
-            st.write(f"### Prediksi: {doc.to_dict()['nama_prediksi']}")
-            st.write(f"Metode: {doc.to_dict()['metode']}")
-    else:
-        st.warning("Tidak terhubung ke database.")
+    prediksi_tersimpan = db.ambil_prediksi()
+    
+    for prediksi in prediksi_tersimpan:
+        prediksi_id, nama_prediksi, metode = prediksi
+        st.write(f"### Prediksi: {nama_prediksi}")
+        st.write(f"Metode: {metode}")
+        
+        kriteria_tersimpan = db.ambil_kriteria(prediksi_id)
+        st.write("#### Kriteria")
+        for k in kriteria_tersimpan:
+            st.write(f"{k[2]} ({k[3]}) - Bobot: {k[4]}")
+        
+        alternatif_tersimpan = db.ambil_alternatif(prediksi_id)
+        st.write("#### Alternatif")
+        for a in alternatif_tersimpan:
+            st.write(a[2])
+    
+    if not prediksi_tersimpan:
+        st.warning("Belum ada prediksi yang tersimpan.")
+
