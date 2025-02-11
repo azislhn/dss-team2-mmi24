@@ -29,8 +29,11 @@ if menu == "🏠 Input Data":
 
         update_setting = st.form_submit_button("Perbarui")
         if update_setting:
-            jumlah_kriteria = input_jumlah_kriteria
-            jumlah_alternatif = input_jumlah_alternatif
+            if (not nama_prediksi or not metode):
+                st.error("Semua data harus diisi sebelum melakukan prediksi.")
+            else:
+                jumlah_kriteria = input_jumlah_kriteria
+                jumlah_alternatif = input_jumlah_alternatif
 
         # Tabs untuk Kriteria dan Alternatif
         tab1, tab2 = st.tabs(["Kriteria", "Alternatif"])
