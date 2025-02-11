@@ -50,6 +50,7 @@ if menu == "🏠 Input Data":
                 else:
                     bobot = st.number_input(f"Bobot {i+1}", 0.0, 1.0, step=0.05, key=f"bobot_{i}")
             kriteria_data.append([nama, tipe, bobot])
+            st.markdown("---")
     
     with tab_alternatif:
         st.subheader("Alternatif")
@@ -60,6 +61,7 @@ if menu == "🏠 Input Data":
             nilai = [st.number_input(f"{nama} - {kriteria_data[j][0]}", min_value=0.0, key=f"nilai_{i}_{j}") for j in range(jumlah_kriteria)]
             alternatif_data.append(nama)
             matrix_data.append(nilai)
+            st.markdown("---")
     
     submit = st.button(f"Simpan & Hitung dengan {metode}")
     
@@ -114,6 +116,7 @@ elif menu == "📜 Riwayat Prediksi":
     prediksi_tersimpan = db.ambil_prediksi()
     
     for prediksi in prediksi_tersimpan:
+        st.markdown("---")
         prediksi_id, nama_prediksi, metode = prediksi
         if search_query.lower() in nama_prediksi.lower():
             st.write(f"### Prediksi: {nama_prediksi}")
@@ -144,6 +147,7 @@ elif menu == "📜 Riwayat Prediksi":
                 df_pivot = df_pivot.reset_index()
                 
                 st.table(df_pivot)
+        st.markdown("---")
     
     if not prediksi_tersimpan:
         st.warning("Belum ada prediksi yang tersimpan.")
