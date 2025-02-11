@@ -116,9 +116,9 @@ elif menu == "📜 Riwayat Prediksi":
     prediksi_tersimpan = db.ambil_prediksi()
     
     for prediksi in prediksi_tersimpan:
-        st.markdown("---")
         prediksi_id, nama_prediksi, metode = prediksi
         if search_query.lower() in nama_prediksi.lower():
+            st.markdown("---")
             st.write(f"### Prediksi: {nama_prediksi}")
             st.write(f"Metode: {metode}")
             
@@ -147,7 +147,7 @@ elif menu == "📜 Riwayat Prediksi":
                 df_pivot = df_pivot.reset_index()
                 
                 st.table(df_pivot)
-        st.markdown("---")
+            st.markdown("---")
     
     if not prediksi_tersimpan:
         st.warning("Belum ada prediksi yang tersimpan.")
