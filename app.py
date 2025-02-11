@@ -77,6 +77,10 @@ if menu == "🏠 Input Data":
                 prediksi_id = db.simpan_prediksi(nama_prediksi, metode)
                 kriteria_ids = [db.simpan_kriteria(prediksi_id, k[0], k[1], k[2]) for k in kriteria_data]
                 alternatif_ids = [db.simpan_alternatif(prediksi_id, a) for a in alternatif_data]
+
+                for i, alternatif_id in enumerate(alternatif_ids):
+                    for j, kriteria_id in enumerate(kriteria_ids):
+                        db.simpan_nilai_alternatif(alternatif_id, kriteria_id, matrix_data[i][j])
                 
                 matrix_np = np.array(matrix_data)
                 bobot_np = np.array([k[2] for k in kriteria_data])
@@ -124,14 +128,10 @@ elif menu == "📜 Riwayat Prediksi":
             for k in kriteria_tersimpan:
                 st.write(f"{k[2]} ({k[3]}) - Bobot: {k[4]}")
             
-            alternatif_tersimpan = db.ambil_nilai_alternatif(prediksi_id)
-            for a in alternatif_tersimpan:
-                st.write(a[2])
-
-            # alternatif_tersimpan = db.ambil_alternatif(prediksi_id)
-            # st.write("#### Alternatif")
-            # for a in alternatif_tersimpan:
-            #     st.write(a[2])
+            nilai_alternatif = db.ambil_nilai_alternatif(prediksi_id)
+            if nilai_alternatif:
+                st.write("#### Riwayat Data Input")
+                st.table(nilai_alternatif)
     
     if not prediksi_tersimpan:
         st.warning("Belum ada prediksi yang tersimpan.")
