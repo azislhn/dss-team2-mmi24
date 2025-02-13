@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from db_sql import Database
+from database import Database
 from models import hitung_saw, hitung_wp, hitung_topsis
 
 # Debugging Mode
@@ -98,12 +98,12 @@ if menu == "🏠 Input Data":
                     hasil = hitung_topsis(matrix_np, bobot_np, tipe_kriteria)
                 
                 if hasil is not None:
-                    hasil_sorted = sorted(zip(alternatif_data, hasil), key=lambda x: x[1], reverse=True)
+                    hasil_sorted = sorted(zip(alternatif_ids, alternatif_data, hasil), key=lambda x: x[2], reverse=True)
                     st.success("Prediksi berhasil dihitung!")
-                    st.table({"Alternatif": [h[0] for h in hasil_sorted], "Skor": [h[1] for h in hasil_sorted]})
+                    st.table({"Alternatif": [h[1] for h in hasil_sorted], "Skor": [h[2] for h in hasil_sorted]})
                     
-                    for alt, skor in hasil_sorted:
-                        db.simpan_hasil(prediksi_id, alt, skor)
+                    for alt_id, alt, skor in hasil_sorted:
+                        db.simpan_hasil(prediksi_id, alt_id, skor)
                 else:
                     st.error("Terjadi kesalahan saat menghitung hasil.")
             except Exception as e:
@@ -123,8 +123,9 @@ elif menu == "📜 Riwayat Prediksi":
             
             hasil_tersimpan = db.ambil_hasil(prediksi_id)
             if hasil_tersimpan:
+                print(hasil_tersimpan[0])
                 st.write("#### Hasil Perhitungan")
-                st.table({"Alternatif": [h[2] for h in hasil_tersimpan], "Skor": [h[3] for h in hasil_tersimpan]})
+                st.table({"Alternatif": [h[0] for h in hasil_tersimpan], "Skor": [h[1] for h in hasil_tersimpan]})
             
             kriteria_tersimpan = db.ambil_kriteria(prediksi_id)
             st.write("#### Kriteria")
@@ -144,6 +145,8 @@ elif menu == "📜 Riwayat Prediksi":
                 
                 df_pivot = df_nilai.pivot(index="Nama Alternatif", columns="Nama Kriteria", values="Nilai")
                 df_pivot = df_pivot.reset_index()
+
+                df_pivot = df_pivot.map(lambda x: "{:.2f}".format(x) if isinstance(x, (int, float)) else x)
                 
                 st.table(df_pivot)
             st.markdown("---")
