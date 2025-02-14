@@ -77,17 +77,9 @@ if menu == "🏠 Input Data":
             st.error("Semua nilai alternatif harus diisi.")
         else:
             try:
-                prediksi_id = db.simpan_prediksi(nama_prediksi, metode)
-                kriteria_ids = [db.simpan_kriteria(prediksi_id, k[0], k[1], k[2]) for k in kriteria_data]
-                alternatif_ids = [db.simpan_alternatif(prediksi_id, a) for a in alternatif_data]
-
-                for i, alternatif_id in enumerate(alternatif_ids):
-                    for j, kriteria_id in enumerate(kriteria_ids):
-                        db.simpan_nilai_alternatif(alternatif_id, kriteria_id, matrix_data[i][j])
-                
                 matrix_np = np.array(matrix_data)
                 bobot_np = np.array([k[2] for k in kriteria_data])
-                tipe_kriteria = [k[1] for k in kriteria_data]
+                tipe_kriteria = np.array([k[1] for k in kriteria_data])
                 
                 hasil = None
                 if metode == "SAW":
@@ -96,8 +88,17 @@ if menu == "🏠 Input Data":
                     hasil = hitung_wp(matrix_np, bobot_np, tipe_kriteria)
                 elif metode == "TOPSIS":
                     hasil = hitung_topsis(matrix_np, bobot_np, tipe_kriteria)
-                
+
+                # Simpan ke database
                 if hasil is not None:
+                    prediksi_id = db.simpan_prediksi(nama_prediksi, metode)
+                    kriteria_ids = [db.simpan_kriteria(prediksi_id, k[0], k[1], k[2]) for k in kriteria_data]
+                    alternatif_ids = [db.simpan_alternatif(prediksi_id, a) for a in alternatif_data]
+
+                    for i, alternatif_id in enumerate(alternatif_ids):
+                        for j, kriteria_id in enumerate(kriteria_ids):
+                            db.simpan_nilai_alternatif(alternatif_id, kriteria_id, matrix_data[i][j])
+                    
                     hasil_sorted = sorted(zip(alternatif_ids, alternatif_data, hasil), key=lambda x: x[2], reverse=True)
                     st.success("Prediksi berhasil dihitung!")
                     st.table({"Alternatif": [h[1] for h in hasil_sorted], "Skor": [h[2] for h in hasil_sorted]})
@@ -113,43 +114,49 @@ if menu == "🏠 Input Data":
 elif menu == "📜 Riwayat Prediksi":
     st.subheader("Riwayat Prediksi")
     search_query = st.text_input("Cari Prediksi Berdasarkan Nama")
-    prediksi_tersimpan = db.ambil_prediksi()
-    
-    for prediksi in prediksi_tersimpan:
-        prediksi_id, nama_prediksi, metode = prediksi
-        if search_query.lower() in nama_prediksi.lower():
-            st.write(f"### Prediksi: {nama_prediksi}")
-            st.write(f"Metode: {metode}")
-            
-            hasil_tersimpan = db.ambil_hasil(prediksi_id)
-            if hasil_tersimpan:
-                print(hasil_tersimpan[0])
-                st.write("#### Hasil Perhitungan")
-                st.table({"Alternatif": [h[0] for h in hasil_tersimpan], "Skor": [h[1] for h in hasil_tersimpan]})
-            
-            kriteria_tersimpan = db.ambil_kriteria(prediksi_id)
-            st.write("#### Kriteria")
-            for k in kriteria_tersimpan:
-                st.write(f"{k[2]} ({k[3]}) - Bobot: {k[4]}")
-            
-            nilai_alternatif = db.ambil_nilai_alternatif(prediksi_id)
-            
-            if nilai_alternatif and kriteria_tersimpan:
-                st.write("#### Riwayat Data Input")
-                df_nilai = pd.DataFrame(nilai_alternatif, columns=["ID", "Alternatif_ID", "Kriteria_ID", "Nilai"])
-                df_alternatif = pd.DataFrame(db.ambil_alternatif(prediksi_id), columns=["ID", "Prediksi_ID", "Nama Alternatif"])
-                df_kriteria = pd.DataFrame(kriteria_tersimpan, columns=["ID", "Prediksi_ID", "Nama Kriteria", "Tipe", "Bobot"])
-                
-                df_nilai = df_nilai.merge(df_alternatif, left_on="Alternatif_ID", right_on="ID", suffixes=("_nilai", "_alt"))
-                df_nilai = df_nilai.merge(df_kriteria, left_on="Kriteria_ID", right_on="ID", suffixes=("", "_krit"))
-                
-                df_pivot = df_nilai.pivot(index="Nama Alternatif", columns="Nama Kriteria", values="Nilai")
-                df_pivot = df_pivot.reset_index()
+    if db is None:
+        st.error("Koneksi ke database gagal.")
+    else:
+        prediksi_tersimpan = db.ambil_prediksi()
 
-                df_pivot = df_pivot.map(lambda x: "{:.2f}".format(x) if isinstance(x, (int, float)) else x)
-                
-                st.table(df_pivot)
-            st.markdown("---")
+        if prediksi_tersimpan:
+            for prediksi in prediksi_tersimpan:
+                prediksi_id, nama_prediksi, metode = prediksi
+
+                if search_query.lower() in nama_prediksi.lower():
+                    st.write(f"### Prediksi: {nama_prediksi}")
+                    st.write(f"Metode: {metode}")
+                    
+                    # Ambil hasil perhitungan
+                    hasil_tersimpan = db.ambil_hasil(prediksi_id)
+                    st.write("#### Hasil Perhitungan")
+                    st.table({"Alternatif": [h[0] for h in hasil_tersimpan], "Skor": [h[1] for h in hasil_tersimpan]})
+                    
+                    # Ambil kriteria
+                    kriteria_tersimpan = db.ambil_kriteria(prediksi_id)
+                    st.write("#### Kriteria")
+                    for k in kriteria_tersimpan:
+                        st.write(f"{k[2]} ({k[3]}) - Bobot: {k[4]}")
+                    
+                    # Ambil nilai alternatif
+                    nilai_alternatif = db.ambil_nilai_alternatif(prediksi_id)
+                    
+                    if nilai_alternatif and kriteria_tersimpan:
+                        st.write("#### Riwayat Data Input")
+                        df_nilai = pd.DataFrame(nilai_alternatif, columns=["ID", "Alternatif_ID", "Kriteria_ID", "Nilai"])
+                        df_alternatif = pd.DataFrame(db.ambil_alternatif(prediksi_id), columns=["ID", "Prediksi_ID", "Nama Alternatif"])
+                        df_kriteria = pd.DataFrame(kriteria_tersimpan, columns=["ID", "Prediksi_ID", "Nama Kriteria", "Tipe", "Bobot"])
+                        
+                        df_nilai = df_nilai.merge(df_alternatif, left_on="Alternatif_ID", right_on="ID", suffixes=("_nilai", "_alt"))
+                        df_nilai = df_nilai.merge(df_kriteria, left_on="Kriteria_ID", right_on="ID", suffixes=("", "_krit"))
+                        
+                        df_pivot = df_nilai.pivot(index="Nama Alternatif", columns="Nama Kriteria", values="Nilai")
+                        df_pivot = df_pivot.reset_index()
+
+                        df_pivot = df_pivot.map(lambda x: "{:.2f}".format(x) if isinstance(x, (int, float)) else x)
+                        
+                        st.table(df_pivot)
+                    st.markdown("---")
     
     if not prediksi_tersimpan:
         st.warning("Belum ada prediksi yang tersimpan.")
