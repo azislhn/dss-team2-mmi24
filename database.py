@@ -1,18 +1,22 @@
-import mysql.connector
+# import mysql.connector
+import pymysql
 
 class Database:
     def __init__(self, host="viaduct.proxy.rlwy.net", user="root", password="BidvozghXocWEgDjBxvHoOFgjAPoRnqM", database="railway", port=15615):
         try:
-            self.conn = mysql.connector.connect(
+            print("Connecting database...")
+            self.conn = pymysql.connect(
                 host=host,
                 user=user,
                 password=password,
                 database=database,
-                port=port
+                port=port,
+                # cursorclass=pymysql.cursors.DictCursor
             )
             self.cursor = self.conn.cursor()
-            self._create_tables()
-        except mysql.connector.Error as err:
+            print("Database connected!")
+            # self._create_tables()
+        except pymysql.MySQLError as err:
             print(f"Error: {err}")
             self.conn = None
             self.cursor = None
@@ -60,11 +64,22 @@ class Database:
         
         self.conn.commit()
 
-    def drop_tables(self):
-        tables = ["hasil", "nilai_alternatif", "alternatif", "kriteria", "prediksi"]
-        for table in tables:
-            self.cursor.execute(f"DROP TABLE IF EXISTS {table}")
-        self.conn.commit()
+    def _drop_tables(self):
+        password_input = input("Password: ")
+        correct_password = "BidvozghXocWEgDjBxvHoOFgjAPoRnqM"
+
+        if password_input == correct_password:
+            confirm = input("Apakah Anda yakin ingin menghapus semua tabel? (y/n): ").strip().lower()
+            if confirm == "y":
+                tables = ["hasil", "nilai_alternatif", "alternatif", "kriteria", "prediksi"]
+                for table in tables:
+                    self.cursor.execute(f"DROP TABLE IF EXISTS {table}")
+                self.conn.commit()
+                print("Semua tabel berhasil dihapus.")
+            else:
+                print("Penghapusan tabel dibatalkan.")
+        else:
+            print("Password salah! Penghapusan tabel dibatalkan.")
     
     def simpan_prediksi(self, nama_prediksi, metode):
         self.cursor.execute("INSERT INTO prediksi (nama_prediksi, metode) VALUES (%s, %s)", (nama_prediksi, metode))
@@ -110,7 +125,16 @@ class Database:
         self.cursor.execute("SELECT a.nama, h.skor FROM hasil h JOIN alternatif a ON h.alternatif_id = a.id WHERE h.prediksi_id = %s", (prediksi_id,))
         return self.cursor.fetchall()
     
-    def close_connection(self):
-        self.conn.close()
+    def hapus_prediksi(self, prediksi_id):
+        try:
+            self.cursor.execute("DELETE FROM prediksi WHERE id = %s", (prediksi_id,))
+            self.conn.commit()
+            print(f"Prediksi dengan ID {prediksi_id} dan semua relasi telah dihapus.")
+        except pymysql.MySQLError as err:
+            print(f"Error: {err}")
 
-Database()
+    def close_connection(self):
+        if self.conn:
+            self.cursor.close()
+            self.conn.close()
+            print("Koneksi database ditutup.")

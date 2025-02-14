@@ -1,5 +1,5 @@
 streamlit
 firebase_admin
-mysql-connector-python
+pymysql
 numpy
 pandas
