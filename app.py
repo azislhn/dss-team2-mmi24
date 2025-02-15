@@ -17,8 +17,6 @@ st.sidebar.markdown("### DSS Framework")
 st.sidebar.markdown("### Menu Navigasi")
 menu = st.sidebar.radio("Pilih Halaman", ["🏠 Input Data", "📜 Riwayat Prediksi"])
 st.sidebar.markdown("---")
-st.sidebar.markdown("**Informasi Aplikasi**")
-st.sidebar.text("Versi: 1.0")
 st.sidebar.text("Dikembangkan oleh: Tim 2 DSS MMI24")
 
 if menu == "🏠 Input Data":
