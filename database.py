@@ -1,8 +1,9 @@
 # import mysql.connector
 import pymysql
+import streamlit as st
 
 class Database:
-    def __init__(self, host="viaduct.proxy.rlwy.net", user="root", password="BidvozghXocWEgDjBxvHoOFgjAPoRnqM", database="railway", port=15615):
+    def __init__(self, host=st.secrets.db_credentials.host, user=st.secrets.db_credentials.user, password=st.secrets.db_credentials.password, database=st.secrets.db_credentials.database, port=st.secrets.db_credentials.port):
         try:
             print("Connecting database...")
             self.conn = pymysql.connect(
