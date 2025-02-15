@@ -12,7 +12,7 @@ db = Database()
 st.set_page_config(page_title="DSS Framework", layout="centered")
 st.title("Sistem Pendukung Pembuatan Keputusan - SAW, WP, TOPSIS")
 
-# Sidebar Navigasi dengan Tampilan yang Ditingkatkan
+# Sidebar 
 st.sidebar.markdown("### DSS Framework")
 st.sidebar.markdown("### Menu Navigasi")
 menu = st.sidebar.radio("Pilih Halaman", ["🏠 Input Data", "📜 Riwayat"])
@@ -33,7 +33,6 @@ if menu == "🏠 Input Data":
         if not nama_prediksi.strip():
             st.error("Nama topik harus diisi.")
 
-    # Menggunakan Tabs untuk Input Kriteria dan Alternatif
     tab_kriteria, tab_alternatif = st.tabs(["**Kriteria**", "**Alternatif**"])
     
     with tab_kriteria:
