@@ -15,14 +15,18 @@ def normalisasi_saw(matrix, tipe_kriteria):
 
 def hitung_saw(matrix, bobot, tipe_kriteria):
     norm_matrix = normalisasi_saw(matrix, tipe_kriteria)
+
+    # Normalisasi bobot
+    bobot = np.array(bobot) / np.sum(bobot)
+
     hasil = np.sum(norm_matrix * bobot, axis=1)
     return hasil
 
 # 2. Fungsi Perhitungan WP
 def hitung_wp(matrix, bobot, tipe_kriteria):
     matrix = np.array(matrix, dtype=np.float64)
-    bobot = np.array(bobot)
-    bobot = bobot / np.sum(bobot)
+
+    bobot = np.array(bobot) / np.sum(bobot)
     
     # Normalisasi untuk benefit/cost
     for j in range(matrix.shape[1]):
