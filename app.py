@@ -10,18 +10,20 @@ import traceback
 db = Database()
 
 st.set_page_config(page_title="DSS Framework", layout="centered")
-st.title("Sistem Pendukung Keputusan - SAW, WP, TOPSIS")
+st.title("Sistem Pendukung Pembuatan Keputusan - SAW, WP, TOPSIS")
 
 # Sidebar Navigasi dengan Tampilan yang Ditingkatkan
 st.sidebar.markdown("### DSS Framework")
 st.sidebar.markdown("### Menu Navigasi")
-menu = st.sidebar.radio("Pilih Halaman", ["🏠 Input Data", "📜 Riwayat Prediksi"])
+menu = st.sidebar.radio("Pilih Halaman", ["🏠 Input Data", "📜 Riwayat"])
 st.sidebar.markdown("---")
-st.sidebar.text("Dikembangkan oleh: Tim 2 DSS MMI24")
+st.sidebar.text("Dikembangkan oleh:")
+st.sidebar.text("Aziz Solihin, Firda Ayu Safitri, Kadek Gunamulya Sudarma Yasa")
+st.sidebar.text("MMI24 UGM")
 
 if menu == "🏠 Input Data":
-    st.subheader("Masukkan Data Prediksi")
-    nama_prediksi = st.text_input("Nama Prediksi", "")
+    st.subheader("Masukkan Data")
+    nama_prediksi = st.text_input("Nama Topik", "")
     metode = st.selectbox("Pilih Metode", ["SAW", "WP", "TOPSIS"])
     jumlah_kriteria = st.number_input("Jumlah Kriteria", min_value=1, step=1, value=3)
     jumlah_alternatif = st.number_input("Jumlah Alternatif", min_value=1, step=1, value=3)
@@ -29,7 +31,7 @@ if menu == "🏠 Input Data":
     
     if update_button:
         if not nama_prediksi.strip():
-            st.error("Nama prediksi harus diisi.")
+            st.error("Nama topik harus diisi.")
 
     # Menggunakan Tabs untuk Input Kriteria dan Alternatif
     tab_kriteria, tab_alternatif = st.tabs(["**Kriteria**", "**Alternatif**"])
@@ -89,29 +91,37 @@ if menu == "🏠 Input Data":
 
                 # Simpan ke database
                 if hasil is not None:
-                    prediksi_id = db.simpan_prediksi(nama_prediksi, metode)
-                    kriteria_ids = [db.simpan_kriteria(prediksi_id, k[0], k[1], k[2]) for k in kriteria_data]
-                    alternatif_ids = [db.simpan_alternatif(prediksi_id, a) for a in alternatif_data]
+                    with st.status("Sedang memproses...") as status:
 
-                    for i, alternatif_id in enumerate(alternatif_ids):
-                        for j, kriteria_id in enumerate(kriteria_ids):
-                            db.simpan_nilai_alternatif(alternatif_id, kriteria_id, matrix_data[i][j])
+                        prediksi_id = db.simpan_prediksi(nama_prediksi, metode)
+                        kriteria_ids = [db.simpan_kriteria(prediksi_id, k[0], k[1], k[2]) for k in kriteria_data]
+                        alternatif_ids = [db.simpan_alternatif(prediksi_id, a) for a in alternatif_data]
+
+                        for i, alternatif_id in enumerate(alternatif_ids):
+                            for j, kriteria_id in enumerate(kriteria_ids):
+                                db.simpan_nilai_alternatif(alternatif_id, kriteria_id, matrix_data[i][j])
+                        
+                        hasil_sorted = sorted(zip(alternatif_ids, alternatif_data, hasil), key=lambda x: x[2], reverse=True)
+                        
+                        for alt_id, alt, skor in hasil_sorted:
+                            db.simpan_hasil(prediksi_id, alt_id, skor)
+                        
+                        status.update(label="Berhasil menghitung!", state="complete")
                     
-                    hasil_sorted = sorted(zip(alternatif_ids, alternatif_data, hasil), key=lambda x: x[2], reverse=True)
-                    st.success("Prediksi berhasil dihitung!")
-                    st.table({"Alternatif": [h[1] for h in hasil_sorted], "Skor": [h[2] for h in hasil_sorted]})
-                    
-                    for alt_id, alt, skor in hasil_sorted:
-                        db.simpan_hasil(prediksi_id, alt_id, skor)
+                    df_hasil = pd.DataFrame({
+                        "Alternatif": [h[1] for h in hasil_sorted],
+                        "Skor": [h[2] for h in hasil_sorted]
+                    })
+                    st.dataframe(df_hasil, hide_index=True, use_container_width=True)
                 else:
-                    st.error("Terjadi kesalahan saat menghitung hasil.")
+                    st.error("Terjadi kesalahan saat menghitung.")
             except Exception as e:
                 st.error(f"Terjadi kesalahan: {e}")
                 st.text(traceback.format_exc())
 
-elif menu == "📜 Riwayat Prediksi":
-    st.subheader("Riwayat Prediksi")
-    search_query = st.text_input("Cari Prediksi Berdasarkan Nama")
+elif menu == "📜 Riwayat":
+    st.subheader("Riwayat Proses")
+    search_query = st.text_input("Cari Berdasarkan Topik")
     if db is None:
         st.error("Koneksi ke database gagal.")
     else:
@@ -119,41 +129,38 @@ elif menu == "📜 Riwayat Prediksi":
 
         if prediksi_tersimpan:
             for prediksi in prediksi_tersimpan:
-                prediksi_id, nama_prediksi, metode = prediksi
+                prediksi_id, nama_prediksi, metode, timestamp = prediksi
 
                 if search_query.lower() in nama_prediksi.lower():
-                    st.write(f"### Prediksi: {nama_prediksi}")
+                    st.write(f"### Topik: {nama_prediksi}")
                     st.write(f"Metode: {metode}")
                     
                     # Ambil hasil perhitungan
-                    hasil_tersimpan = db.ambil_hasil(prediksi_id)
+                    hasil_tersimpan = db.ambil_semua_data_keputusan(prediksi_id)
                     st.write("#### Hasil Perhitungan")
-                    st.table({"Alternatif": [h[0] for h in hasil_tersimpan], "Skor": [h[1] for h in hasil_tersimpan]})
-                    
-                    # Ambil kriteria
-                    kriteria_tersimpan = db.ambil_kriteria(prediksi_id)
-                    st.write("#### Kriteria")
-                    for k in kriteria_tersimpan:
-                        st.write(f"{k[2]} ({k[3]}) - Bobot: {k[4]}")
-                    
-                    # Ambil nilai alternatif
-                    nilai_alternatif = db.ambil_nilai_alternatif(prediksi_id)
-                    
-                    if nilai_alternatif and kriteria_tersimpan:
-                        st.write("#### Riwayat Data Input")
-                        df_nilai = pd.DataFrame(nilai_alternatif, columns=["ID", "Alternatif_ID", "Kriteria_ID", "Nilai"])
-                        df_alternatif = pd.DataFrame(db.ambil_alternatif(prediksi_id), columns=["ID", "Prediksi_ID", "Nama Alternatif"])
-                        df_kriteria = pd.DataFrame(kriteria_tersimpan, columns=["ID", "Prediksi_ID", "Nama Kriteria", "Tipe", "Bobot"])
-                        
-                        df_nilai = df_nilai.merge(df_alternatif, left_on="Alternatif_ID", right_on="ID", suffixes=("_nilai", "_alt"))
-                        df_nilai = df_nilai.merge(df_kriteria, left_on="Kriteria_ID", right_on="ID", suffixes=("", "_krit"))
-                        
-                        df_pivot = df_nilai.pivot(index="Nama Alternatif", columns="Nama Kriteria", values="Nilai")
-                        df_pivot = df_pivot.reset_index()
 
-                        df_pivot = df_pivot.map(lambda x: "{:.2f}".format(x) if isinstance(x, (int, float)) else x)
-                        
-                        st.table(df_pivot)
+                    df = pd.DataFrame(hasil_tersimpan, columns=["ID Alternatif", "Alternatif", "ID Kriteria", "Kriteria", "Nilai", "Hasil"])
+                    kriteria_order = df[["ID Kriteria", "Kriteria"]].drop_duplicates().sort_values("ID Kriteria")
+                    df_pivot = df.pivot(index="Alternatif", columns=["Kriteria"], values="Nilai").reset_index()
+                    df_hasil = df[["Alternatif", "Hasil"]].drop_duplicates()
+                    df_pivot = df_pivot.merge(df_hasil, on="Alternatif")
+                    df_pivot["Ranking"] = df_pivot["Hasil"].rank(ascending=False, method="dense").astype(int)
+                    kolom_order = ["Ranking", "Alternatif"] + list(kriteria_order["Kriteria"]) + ["Hasil"]
+                    df_pivot = df_pivot[kolom_order]
+                    df_pivot = df_pivot.sort_values(by="Ranking", ascending=True)
+                    df_pivot = df_pivot.reset_index(drop=True)
+
+                    st.dataframe(data=df_pivot, hide_index=True, use_container_width=True)
+
+                    kriteria_tersimpan = db.ambil_kriteria(prediksi_id)
+                    st.write("#### Bobot Kriteria")
+                    
+                    kriteria_df = pd.DataFrame(kriteria_tersimpan, columns=["ID", "ID Prediksi", "Kriteria", "Tipe", "Bobot"])
+                    kriteria_df = kriteria_df[["Kriteria", "Bobot", "Tipe"]].map(lambda x: "{:.2f}".format(x) if isinstance(x, (int, float)) else x)
+                    
+                    st.dataframe(data=kriteria_df, hide_index=True, use_container_width=True)
+                    tanggal = pd.to_datetime(timestamp).strftime("%d %B %Y")
+                    st.text(f"Diproses pada: {tanggal}")
                     st.markdown("---")
     
     if not prediksi_tersimpan:
