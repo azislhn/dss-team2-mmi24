@@ -26,7 +26,8 @@ class Database:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS prediksi (
             id INT AUTO_INCREMENT PRIMARY KEY,
             nama_prediksi VARCHAR(255),
-            metode VARCHAR(255)
+            metode VARCHAR(255),
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
         
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS kriteria (
@@ -67,7 +68,7 @@ class Database:
 
     def _drop_tables(self):
         password_input = input("Password: ")
-        correct_password = "BidvozghXocWEgDjBxvHoOFgjAPoRnqM"
+        correct_password = st.secrets.db_credentials.password
 
         if password_input == correct_password:
             confirm = input("Apakah Anda yakin ingin menghapus semua tabel? (y/n): ").strip().lower()
@@ -106,7 +107,7 @@ class Database:
         self.conn.commit()
 
     def ambil_prediksi(self):
-        self.cursor.execute("SELECT * FROM prediksi")
+        self.cursor.execute("SELECT * FROM prediksi ORDER BY timestamp DESC, id DESC;")
         return self.cursor.fetchall()
     
     def ambil_kriteria(self, prediksi_id):
@@ -122,8 +123,27 @@ class Database:
         return self.cursor.fetchall()
     
     def ambil_hasil(self, prediksi_id):
-        # self.cursor.execute("SELECT hasil.* FROM hasil WHERE prediksi_id = %s", (prediksi_id,))
         self.cursor.execute("SELECT a.nama, h.skor FROM hasil h JOIN alternatif a ON h.alternatif_id = a.id WHERE h.prediksi_id = %s", (prediksi_id,))
+        return self.cursor.fetchall()
+    
+    def ambil_semua_data_keputusan(self, prediksi_id):
+        query = """
+        SELECT 
+            a.id AS id_alternatif,
+            a.nama AS alternatif, 
+            k.id AS id_kriteria,
+            k.nama AS kriteria, 
+            na.nilai AS nilai_alternatif, 
+            h.skor AS hasil
+        FROM alternatif a
+        JOIN nilai_alternatif na ON a.id = na.alternatif_id
+        JOIN kriteria k ON na.kriteria_id = k.id
+        LEFT JOIN hasil h ON a.id = h.alternatif_id
+        WHERE a.prediksi_id = %s;
+        """
+        
+        self.cursor.execute(query, (prediksi_id,))
+        
         return self.cursor.fetchall()
     
     def hapus_prediksi(self, prediksi_id):
