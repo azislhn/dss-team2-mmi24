@@ -53,7 +53,7 @@ if menu == "🏠 Input Data":
                 })
                 st.markdown("---")
             if st.form_submit_button("Konfirmasi"):
-                if not all(k["Nama"].strip() for k in data_kriteria):
+                if not all(k['Nama'].strip() for k in data_kriteria):
                     st.error("Semua nama kriteria harus diisi.")
 
     # INPUT SUBKRITERIA
@@ -67,23 +67,23 @@ if menu == "🏠 Input Data":
                 for k in data_kriteria: 
                     if k["Subkriteria"] > 0:
                         subkriteria_list = []
-                        st.subheader(f"{k["Nama"]}")
+                        st.subheader(k['Nama'])
                         for i in range(k["Subkriteria"]):
                             col1, col2 = st.columns(2)
                             with col1:
-                                nama = st.text_input(f"Nama Subkriteria {i+1}", key=f"subkriteria_{k["Nama"]}{i}")
+                                nama = st.text_input(f"Nama Subkriteria {i+1}", key=f"subkriteria_{k['Nama']}{i}")
                             with col2:
-                                bobot = st.number_input(f"Bobot Subkriteria", 0.0, step=0.05, key=f"bobot_subkrit_{k["Nama"]}{i}")
-                                tipe = st.radio(f"Tipe Subkriteria", ["benefit", "cost"], key=f"tipe_subkrit_{k["Nama"]}{i}")
+                                bobot = st.number_input(f"Bobot Subkriteria", 0.0, step=0.05, key=f"bobot_subkrit_{k['Nama']}{i}")
+                                tipe = st.radio(f"Tipe Subkriteria", ["benefit", "cost"], key=f"tipe_subkrit_{k['Nama']}{i}")
                             subkriteria_list.append({
                                 "Nama": nama,
                                 "Bobot": bobot,
                                 "Tipe": tipe
                             })
-                        data_subkrit[k["Nama"]] = subkriteria_list
+                        data_subkrit[k['Nama']] = subkriteria_list
                         st.markdown("---")
                 if st.form_submit_button("Konfirmasi"):
-                    if not all(s["Nama"].strip() for s in subkriteria_list):
+                    if not all(s['Nama'].strip() for s in subkriteria_list):
                         st.error("Semua nama subkriteria harus diisi.")
 
     # INPUT ALTERNATIF
@@ -100,14 +100,14 @@ if menu == "🏠 Input Data":
                 matrix_list = []
                 subnilai_list = []
                 for j, k in enumerate(data_kriteria):
-                    if k["Subkriteria"] > 0 and k["Nama"] in data_subkrit:
-                        data = data_subkrit[k["Nama"]]
+                    if k["Subkriteria"] > 0 and k['Nama'] in data_subkrit:
+                        data = data_subkrit[k['Nama']]
                         for n, d in enumerate(data):
-                            nilai = st.number_input(f"{k["Nama"]} {d["Nama"]} ({d["Tipe"]})", min_value=0.0, key=f"nilai_{i}{j}{n}")
+                            nilai = st.number_input(f"{k['Nama']} {d['Nama']} ({d['Tipe']})", min_value=0.0, key=f"nilai_{i}{j}{n}")
                             matrix_list.append(nilai)
                             subnilai_list.append(nilai) # untuk database
                     else:
-                        nilai = st.number_input(f"{k["Nama"]} ({k["Tipe"]})", min_value=0.0, key=f"nilai_{i}{j}")
+                        nilai = st.number_input(f"{k['Nama']} ({k['Tipe']})", min_value=0.0, key=f"nilai_{i}{j}")
                         matrix_list.append(nilai)
                         data_nilai[i][j] = nilai # untuk database
                 data_alternatif.append({
@@ -118,7 +118,7 @@ if menu == "🏠 Input Data":
                 data_subnilai.append(subnilai_list) # untuk database
                 st.markdown("---")
             if st.form_submit_button("Konfirmasi"):
-                if not all(data_alternatif) or not all(a["Nama"].strip() for a in data_alternatif):
+                if not all(data_alternatif) or not all(a['Nama'].strip() for a in data_alternatif):
                     st.error("Semua nama alternatif harus diisi.")
                 elif not all(data_matrix):
                     st.error("Semua nilai alternatif harus diisi.")
@@ -127,9 +127,9 @@ if menu == "🏠 Input Data":
     if submit:  
         if not judul_topik.strip():
             st.error("Judul topik harus diisi.")
-        elif not all(k["Nama"].strip() for k in data_kriteria):
+        elif not all(k['Nama'].strip() for k in data_kriteria):
             st.error("Semua nama kriteria harus diisi.")
-        elif not all(data_alternatif) or not all(a["Nama"].strip() for a in data_alternatif):
+        elif not all(data_alternatif) or not all(a['Nama'].strip() for a in data_alternatif):
             st.error("Semua nama alternatif harus diisi.")  
         elif not all(data_matrix):
             st.error("Semua nilai alternatif harus diisi.")
@@ -143,8 +143,8 @@ if menu == "🏠 Input Data":
 
             with st.spinner("Sedang memproses..."):
                 norm_data_krit = normalisasi_bobot_kriteria(data_kriteria, data_subkrit)
-                krit_nama = [k["Nama"] for k in norm_data_krit]
-                alt_nama = [a["Nama"] for a in data_alternatif]
+                krit_nama = [k['Nama'] for k in norm_data_krit]
+                alt_nama = [a['Nama'] for a in data_alternatif]
 
                 hasil = None
                 if metode == "SAW":
