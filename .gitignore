@@ -1,5 +1,5 @@
-*.test.*
-
+*.test.py
+.test/
 .streamlit/secrets.toml
 
 # Byte-compiled / optimized / DLL files
