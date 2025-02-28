@@ -262,7 +262,7 @@ class Database:
         hasil_df = df[["alternatif_id", "alternatif_nama", "hasil"]].drop_duplicates().set_index("alternatif_id")
         pivot_df = hasil_df.join(pivot_df)
         pivot_df["Rank"] = pivot_df["hasil"].rank(method="dense", ascending=False).astype(int)
-        pivot_df = pivot_df.rename(columns={"hasil": "Skor Hasil Perhitungan", "alternatif_nama": "Alternatif"})
+        pivot_df = pivot_df.rename(columns={"hasil": "Skor Hasil", "alternatif_nama": "Alternatif"})
         pivot_df = pivot_df.sort_values(by="Rank").set_index("Rank")
         return pivot_df
     
